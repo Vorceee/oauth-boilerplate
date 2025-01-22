@@ -14,10 +14,10 @@ app.get("/", (req, res) => {
 });
 
 app.get("/auth", (req, res) => {
-    app.redirect(`https://github.com/login/oauth/authorize?scope=read:user&client_id=${process.env.CLIENT_ID}`)
+    res.redirect(`https://github.com/login/oauth/authorize?scope=read:user&client_id=${process.env.CLIENT_ID}`)
 });
 
-app.get("github-callback", async (req,res) =>{
+app.get("/github-callback", async (req,res) =>{
     const body = {
         client_id: process.env.CLIENT_ID,
         client_secret: process.env.CLIENT_SECRET,
@@ -36,6 +36,18 @@ app.get("github-callback", async (req,res) =>{
 
         const gho_data = await response.json();
         console.log(gho_data)
+        const responseUser = await fetch("https://api.github.com/user", {
+            headers: { 'Authorization': `Bearer ${gho_data}`}
+        });
+
+        const userData = await responseUser.json();
+
+        console.log(userData);
+
+        const site_token = jwt.sign({
+            id: userData.id,
+            name: userData.name
+        })
         
     } catch (err) {
         console.log(err),
